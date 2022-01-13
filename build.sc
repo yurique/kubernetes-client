@@ -14,7 +14,7 @@ import mill.scalalib._
 import mill.scalalib.api.Util.isScala3
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 
-object `kubernetes-client` extends Cross[KubernetesClientModule]("3.0.1", "2.13.5", "2.12.12")
+object `kubernetes-client` extends Cross[KubernetesClientModule]("3.1.0", "2.13.5", "2.12.12")
 class KubernetesClientModule(val crossScalaVersion: String)
     extends CrossScalaModule
     with TpolecatModule
@@ -34,7 +34,7 @@ class KubernetesClientModule(val crossScalaVersion: String)
   override def ivyDeps =
     super.ivyDeps() ++ http4s ++ circe ++ circeYaml ++ bouncycastle ++ collectionCompat ++ logging
   override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++
-    (if (isScala3(scalaVersion())) Agg.empty else Agg(ivy"org.typelevel:::kind-projector:0.11.3"))
+    (if (isScala3(scalaVersion())) Agg.empty else Agg(ivy"org.typelevel:::kind-projector:0.13.2"))
 
   object test extends Tests with Munit {
     override def forkArgs = super.forkArgs() :+ "-Djdk.tls.client.protocols=TLSv1.2"
