@@ -52,6 +52,9 @@ class KubernetesClient[F[_]: Async: Logger](
   lazy val ingresses: IngressessApi[F] = new IngressessApi(httpClient, config, cachedExecToken)
   lazy val leases: LeasesApi[F]        = new LeasesApi(httpClient, config, cachedExecToken)
 
+  lazy val persistentVolumeClaims: PersistentVolumeClaimsApi[F] =
+    new PersistentVolumeClaimsApi(httpClient, config, cachedExecToken)
+
   def customResources[A: Encoder: Decoder, B: Encoder: Decoder](context: CrdContext)(implicit
       listDecoder: Decoder[CustomResourceList[A, B]],
       encoder: Encoder[CustomResource[A, B]],
