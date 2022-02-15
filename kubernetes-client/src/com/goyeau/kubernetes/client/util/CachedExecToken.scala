@@ -39,7 +39,7 @@ private[client] object CachedExecToken {
             }.onError { case e: IOException =>
               Logger[F].error(
                 s"Failed to execute the credentials plugin: ${exec.command}: ${e.getMessage}.${exec.installHint
-                  .fold("")(hint => s"\n$hint")}"
+                    .fold("")(hint => s"\n$hint")}"
               )
             }.flatMap { output =>
               F.fromEither(
