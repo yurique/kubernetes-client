@@ -22,7 +22,7 @@ private[client] class PersistentVolumeClaimsApi[F[_]](
     encoder: Encoder[PersistentVolumeClaim]
 ) extends Listable[F, PersistentVolumeClaimList]
     with Watchable[F, PersistentVolumeClaim] {
-  val resourceUri: Uri = uri"/apis" / "networking.k8s.io" / "v1" / "ingresses"
+  val resourceUri: Uri = uri"/api" / "v1" / "persistentvolumeclaims"
 
   def namespace(namespace: String): NamespacedPersistentVolumeClaimsApi[F] =
     new NamespacedPersistentVolumeClaimsApi(httpClient, config, cachedExecToken, namespace)
@@ -45,5 +45,5 @@ private[client] class NamespacedPersistentVolumeClaimsApi[F[_]](
     with Deletable[F]
     with GroupDeletable[F]
     with Watchable[F, PersistentVolumeClaim] {
-  val resourceUri: Uri = uri"/apis" / "networking.k8s.io" / "v1" / "namespaces" / namespace / "ingresses"
+  val resourceUri: Uri = uri"/api" / "v1" / "namespaces" / namespace / "persistentvolumeclaims"
 }
