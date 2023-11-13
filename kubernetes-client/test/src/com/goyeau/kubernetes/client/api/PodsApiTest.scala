@@ -1,8 +1,9 @@
 package com.goyeau.kubernetes.client.api
 
+import cats.syntax.all.*
 import cats.effect.unsafe.implicits.global
 import cats.effect.{Async, IO}
-import com.goyeau.kubernetes.client.KubernetesClient
+import com.goyeau.kubernetes.client.{KubernetesClient, TestPodSpec}
 import com.goyeau.kubernetes.client.Utils.retry
 import com.goyeau.kubernetes.client.api.ExecStream.{StdErr, StdOut}
 import com.goyeau.kubernetes.client.operation.*
@@ -15,7 +16,8 @@ import munit.FunSuite
 import org.http4s.Status
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import java.nio.file.{Files => JFiles}
+
+import java.nio.file.Files as JFiles
 import scala.util.Random
 
 class PodsApiTest
@@ -40,7 +42,7 @@ class PodsApiTest
   override def sampleResource(resourceName: String, labels: Map[String, String]): Pod =
     Pod(
       metadata = Option(ObjectMeta(name = Option(resourceName), labels = Option(labels))),
-      spec = Option(PodSpec(containers = Seq(Container("test", image = Option("docker")))))
+      spec = Option(TestPodSpec.alpine)
     )
 
   private val activeDeadlineSeconds = Option(5L)
@@ -61,27 +63,32 @@ class PodsApiTest
 
   def testPod(podName: String, labels: Map[String, String] = Map.empty): Pod = Pod(
     metadata = Option(ObjectMeta(name = Option(podName), labels = Option(labels))),
-    spec = Option(
-      PodSpec(
-        containers = Seq(
-          Container(
-            "test",
-            image = Option("docker"),
-            command = Option(Seq("sh", "-c", "tail -f /dev/null"))
+    spec = TestPodSpec.alpine
+      .copy(
+        containers = TestPodSpec.alpine.containers.map { container =>
+          container.copy(
+            command = Option(Seq("sh", "-c", "sleep 120"))
           )
-        )
+        }
       )
-    )
+      .some
+//      PodSpec(
+//        containers = Seq(
+//          Container(
+//            "test",
+//            image = Option("alpine"),
+//            command = Option(Seq("sh", "-c", "tail -f /dev/null"))
+//          )
+//        )
+//      )
   )
 
   def testPodWithLogs(podName: String, labels: Map[String, String] = Map.empty): Pod = Pod(
     metadata = Option(ObjectMeta(name = Option(podName), labels = Option(labels))),
-    spec = Option(
-      PodSpec(
-        containers = Seq(
-          Container(
-            "test",
-            image = Option("docker"),
+    spec = TestPodSpec.alpine
+      .copy(
+        containers = TestPodSpec.alpine.containers.map { container =>
+          container.copy(
             command = Option(
               Seq(
                 "sh",
@@ -90,9 +97,24 @@ class PodsApiTest
               )
             )
           )
-        )
+        }
       )
-    )
+      .some
+//      PodSpec(
+//        containers = Seq(
+//          Container(
+//            "test",
+//            image = Option("alpine"),
+//            command = Option(
+//              Seq(
+//                "sh",
+//                "-c",
+//                "echo line 1; sleep 1; echo line 2; sleep 2; echo line 3; echo line 4; echo line 5; echo line 6"
+//              )
+//            )
+//          )
+//        )
+//      )
   )
 
   private val successStatus = Some(Right(v1.Status(status = Some("Success"), metadata = Some(ListMeta()))))
@@ -306,6 +328,7 @@ class PodsApiTest
             IO.raiseError(new RuntimeException("Pod is not started"))
           else IO.unit
       } yield pod,
+      maxRetries = 50,
       actionClue = Some(s"Waiting for pod $name to be ready")
     )
 }
